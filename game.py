@@ -88,7 +88,28 @@ def main():
 
         # Paddle collision
         if paddle.rect.colliderect(ball.rect) and not ball.attached:
-            ball.y_vel *= -1
+            # Calculate where the ball hit the paddle
+            paddle_center = paddle.rect.centerx
+            ball_center = ball.rect.centerx
+            distance_from_center = ball_center - paddle_center
+
+            # Normalize value to range [-1, 1]
+            normalized = distance_from_center / (paddle.rect.width / 2)
+
+            # Set max angle from center (in degrees)
+            max_angle = 60
+            angle = normalized * max_angle
+
+            # Convert angle to velocity components
+            import math
+            speed = (ball.x_vel ** 2 + ball.y_vel ** 2) ** 0.5  # keep same speed
+
+            # Angle is measured from vertical, so rotate velocity
+            rad = math.radians(angle)
+            ball.x_vel = speed * math.sin(rad)
+            ball.y_vel = -abs(speed * math.cos(rad))  # always bounce upward
+
+            ball.rect.bottom = paddle.rect.top -1
 
         # Brick collision
         for brick in bricks[:]:
