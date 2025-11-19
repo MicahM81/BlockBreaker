@@ -1,0 +1,40 @@
+# ----- Python Bytecode -----
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ----- Virtual Environments -----
+.venv/
+venv/
+env/
+
+# ----- Build Artifacts -----
+build/
+dist/
+*.spec
+
+# ----- Editor/IDE Files -----
+.vscode/
+.idea/
+*.iml
+
+# ----- OS-specific files -----
+.DS_Store
+Thumbs.db
+
+# ----- Python Packaging Files -----
+*.egg-info/
+*.egg
+.eggs/
+
+# ----- Logs & Cache -----
+.cache/
+*.log
+
+# ----- Pygbag Web Build -----
+web/
+build/web/
+
+# ----- Misc -----
+*.tmp
+
