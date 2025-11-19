@@ -28,6 +28,14 @@ def main():
     brick_width = WIDTH // cols
     brick_height = 30
 
+    # Account for player lives
+    lives = 3
+    font = pygame.font.SysFont("arial", 28)
+
+    def draw_lives(window, lives):
+        text = font.render(f"Lives: {lives}", True, (255, 255, 255))
+        window.blit(text, (10, 10))
+
     for row in range(rows):
         for col in range(cols):
             brick = Brick(col * brick_width, row * brick_height + 40, brick_width, brick_height)
@@ -61,7 +69,22 @@ def main():
 
         # Reset if ball goes off bottom of screen
         if ball.rect.top > HEIGHT:
-            ball.reset(paddle)
+            lives -= 1
+
+            if lives > 0:
+                ball.reset(paddle)  # place ball back on paddle
+            else:
+                # Game over – reset everything
+                lives = 3
+                # Reset bricks (optional)
+                bricks.clear()
+                # Rebuild brick layout
+                for row in range(rows):
+                    for col in range(cols):
+                        brick = Brick(col * brick_width, row * brick_height + 40, brick_width, brick_height)
+                        bricks.append(brick)
+
+                ball.reset(paddle)
 
         # Paddle collision
         if paddle.rect.colliderect(ball.rect) and not ball.attached:
@@ -79,6 +102,7 @@ def main():
         for brick in bricks:
             brick.draw(WIN)
 
+        draw_lives(WIN, lives)
         pygame.display.update()
 
     pygame.quit()
