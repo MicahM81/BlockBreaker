@@ -15,6 +15,25 @@ FPS = 60
 # Colors
 BLACK = (0, 0, 0)
 
+# Game state constants
+PLAYING = 0
+GAME_OVER = 1
+WON = 2
+
+
+def build_bricks(rows, cols, brick_width, brick_height):
+    bricks = []
+    for row in range(rows):
+        for col in range(cols):
+            brick = Brick(col * brick_width,
+                          row * brick_height + 40,
+                          brick_width,
+                          brick_height)
+            bricks.append(brick)
+    return bricks
+
+
+
 def main():
     clock = pygame.time.Clock()
 
@@ -22,29 +41,71 @@ def main():
     ball = Ball(WIDTH // 2, HEIGHT // 2)
 
     # Create some bricks
-    bricks = []
     rows = 5
     cols = 10
     brick_width = WIDTH // cols
     brick_height = 30
+    bricks = build_bricks(rows, cols, brick_width, brick_height)
 
     # Account for player lives
     lives = 3
     font = pygame.font.SysFont("arial", 28)
 
+    game_state = PLAYING
+
     def draw_lives(window, lives):
         text = font.render(f"Lives: {lives}", True, (255, 255, 255))
         window.blit(text, (10, 10))
 
-    for row in range(rows):
-        for col in range(cols):
-            brick = Brick(col * brick_width, row * brick_height + 40, brick_width, brick_height)
-            bricks.append(brick)
+    def draw_center_text(text, size, y_offset=0, color=(255, 255, 255)):
+        font_obj = pygame.font.SysFont("arial", size)
+        surface = font_obj.render(text, True, color)
+        rect = surface.get_rect(center=(WIDTH // 2, HEIGHT // 2 + y_offset))
+        WIN.blit(surface, rect)
 
     run = True
     while run:
         clock.tick(FPS)
         WIN.fill(BLACK)
+
+        # --- GAME OVER SCREEN ---
+        if game_state == GAME_OVER:
+            for event in pygame.event.get():  # <<< REQUIRED
+                if event.type == pygame.QUIT:
+                    run = False
+
+            draw_center_text("GAME OVER", 60, color=(255, 0, 0))
+            draw_center_text("Press SPACE to restart", 28, y_offset=40, color=(255, 255, 255))
+            pygame.display.update()
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                lives = 3
+                bricks = build_bricks(rows, cols, brick_width, brick_height)
+                ball.reset(paddle)
+                game_state = PLAYING
+
+            continue
+
+        # --- WIN SCREEN ---
+        if game_state == WON:
+
+            for event in pygame.event.get():  # <<< REQUIRED
+                if event.type == pygame.QUIT:
+                    run = False
+
+            draw_center_text("YOU WIN!", 60, y_offset=-40, color=(0, 255, 0))
+            draw_center_text("Press SPACE to play again", 28, y_offset=40, color=(255, 255, 255))
+            pygame.display.update()
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                lives = 3
+                bricks = build_bricks(rows, cols, brick_width, brick_height)
+                ball.reset(paddle)
+                game_state = PLAYING
+
+            continue
 
         # Events
         for event in pygame.event.get():
@@ -74,17 +135,7 @@ def main():
             if lives > 0:
                 ball.reset(paddle)  # place ball back on paddle
             else:
-                # Game over – reset everything
-                lives = 3
-                # Reset bricks (optional)
-                bricks.clear()
-                # Rebuild brick layout
-                for row in range(rows):
-                    for col in range(cols):
-                        brick = Brick(col * brick_width, row * brick_height + 40, brick_width, brick_height)
-                        bricks.append(brick)
-
-                ball.reset(paddle)
+                game_state = GAME_OVER
 
         # Paddle collision
         if paddle.rect.colliderect(ball.rect) and not ball.attached:
@@ -116,6 +167,9 @@ def main():
             if brick.rect.colliderect(ball.rect):
                 bricks.remove(brick)
                 ball.y_vel *= -1
+
+        if len(bricks) == 0:
+            game_state = WON
 
         # Draw everything
         paddle.draw(WIN)
